@@ -32,3 +32,12 @@ export const updateMeSchema = z.object({
       message: "At least one field is required",
     }),
 });
+
+export const socialAuthSchema = z.object({
+  body: z.object({
+    token: z.string().min(1),
+    email: z.string().email().optional(),
+    name: z.string().trim().min(1).max(80).optional(),
+    avatar: z.string().trim().url().optional(),
+  }),
+});

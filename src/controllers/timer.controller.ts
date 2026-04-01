@@ -166,3 +166,5 @@ export const cancelTimer = async (req: Request, res: Response) => {
     habit: serializeHabit(habit, dateKey),
   });
 };
+
+export const resetTimer = async (req: Request, res: Response) => cancelTimer(req, res);
