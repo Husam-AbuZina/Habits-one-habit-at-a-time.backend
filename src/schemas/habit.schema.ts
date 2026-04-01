@@ -70,6 +70,7 @@ export const listHabitsSchema = z.object({
       .transform((value) => value === "true")
       .optional(),
     intent: z.enum(["build", "break"]).optional(),
+    goalFrequency: z.string().optional(),
     date: z.string().datetime().or(z.string().date()).optional(),
     category: z.string().optional(),
   }),
@@ -232,6 +233,148 @@ export const homeHabitsQuerySchema = z.object({
 export const historyAggregateRangeSchema = z.object({
   query: z.object({
     range: z.string().regex(/^\d+d$/i).optional(),
+  }),
+});
+
+export const listCreateSchema = z.object({
+  body: z.object({
+    name: z.string().trim().min(1).max(120),
+    colorValue: z.union([z.string(), z.number()]).nullable().optional(),
+  }),
+});
+
+export const updateListSchema = z.object({
+  params: z.object({
+    listId: z.string().min(1),
+  }),
+  body: z
+    .object({
+      name: z.string().trim().min(1).max(120).optional(),
+      colorValue: z.union([z.string(), z.number()]).nullable().optional(),
+    })
+    .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+});
+
+export const listIdSchema = z.object({
+  params: z.object({
+    listId: z.string().min(1),
+  }),
+});
+
+export const habitListParamsSchema = z.object({
+  params: z.object({
+    habitId: z.string().min(1),
+    listId: z.string().min(1),
+  }),
+});
+
+export const remindersQuerySchema = z.object({
+  query: z.object({
+    habitId: z.string().optional(),
+  }),
+});
+
+export const createReminderSchema = z.object({
+  body: z.object({
+    habitId: z.string().optional(),
+    title: z.string().trim().min(1).max(160),
+    time: z.string().trim().min(1).max(20),
+    weekdays: z.array(z.string()).optional(),
+    enabled: z.boolean().optional(),
+  }),
+});
+
+export const reminderIdSchema = z.object({
+  params: z.object({
+    reminderId: z.string().min(1),
+  }),
+});
+
+export const updateReminderSchema = z.object({
+  params: z.object({
+    reminderId: z.string().min(1),
+  }),
+  body: z
+    .object({
+      title: z.string().trim().min(1).max(160).optional(),
+      time: z.string().trim().min(1).max(20).optional(),
+      weekdays: z.array(z.string()).optional(),
+      enabled: z.boolean().optional(),
+    })
+    .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+});
+
+export const notificationPrefsSchema = z.object({
+  body: z
+    .object({
+      notificationsEnabled: z.boolean().optional(),
+      soundsEnabled: z.boolean().optional(),
+      notificationSoundId: z.string().trim().min(1).max(100).optional(),
+      appBadgeEnabled: z.boolean().optional(),
+    })
+    .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+});
+
+export const importJsonSchema = z.object({
+  body: z.object({
+    settings: z.record(z.string(), z.unknown()).optional(),
+    habits: z.array(z.record(z.string(), z.unknown())).optional(),
+    notes: z.array(z.record(z.string(), z.unknown())).optional(),
+  }),
+});
+
+export const habitSearchSchema = z.object({
+  query: z.object({
+    q: z.string().trim().min(1),
+  }),
+});
+
+export const streakHabitSchema = z.object({
+  params: z.object({
+    habitId: z.string().min(1),
+  }),
+});
+
+export const syncSchema = z.object({
+  query: z.object({
+    since: z.string().datetime().optional(),
+  }),
+});
+
+export const syncPushSchema = z.object({
+  body: z.object({
+    settings: z.record(z.string(), z.unknown()).optional(),
+    habits: z.array(z.record(z.string(), z.unknown())).optional(),
+    notes: z.array(z.record(z.string(), z.unknown())).optional(),
+    reminders: z.array(z.record(z.string(), z.unknown())).optional(),
+  }),
+});
+
+export const historyDailySchema = z.object({
+  query: z.object({
+    from: z.string().datetime().or(z.string().date()).optional(),
+    to: z.string().datetime().or(z.string().date()).optional(),
+  }),
+});
+
+export const actionSchema = z.object({
+  params: z.object({
+    habitId: z.string().min(1),
+  }),
+  body: z.object({
+    date: z.string().datetime().or(z.string().date()),
+    action: z.enum(["increment", "decrement", "fill", "undo", "skip", "unskip", "set_value"]),
+    value: z.number().nonnegative().optional(),
+  }),
+});
+
+export const addDurationSchema = z.object({
+  params: z.object({
+    habitId: z.string().min(1),
+    date: z.string().min(1),
+  }),
+  body: z.object({
+    durationSeconds: z.number().nonnegative(),
   }),
 });
 

@@ -1,8 +1,10 @@
 import { Router } from "express";
 import {
   getHome,
+  getHomeByQuery,
   getHomeHabits,
   getHomeProgress,
+  getHomeWeekByQuery,
   getHomeWeekStrip,
 } from "../controllers/home.controller";
 import { requireAuth } from "../middleware/auth";
@@ -14,6 +16,8 @@ const router = Router();
 
 router.use(requireAuth);
 
+router.get("/", asyncHandler(getHomeByQuery));
+router.get("/week", asyncHandler(getHomeWeekByQuery));
 router.get("/:date", validate(homeDateSchema), asyncHandler(getHome));
 router.get("/:date/week-strip", validate(homeDateSchema), asyncHandler(getHomeWeekStrip));
 router.get("/:date/progress", validate(homeDateSchema), asyncHandler(getHomeProgress));

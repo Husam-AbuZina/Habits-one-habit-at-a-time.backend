@@ -3,11 +3,19 @@ import { z } from "zod";
 const settingsPatchBody = z.object({
   appearanceLabel: z.string().trim().min(1).max(50).optional(),
   soundsEnabled: z.boolean().optional(),
+  vibrationEnabled: z.boolean().optional(),
   vacationModeEnabled: z.boolean().optional(),
   weekStartsOn: z.enum(["sunday", "monday"]).optional(),
   completionSoundId: z.string().trim().min(1).max(100).optional(),
   failureSoundId: z.string().trim().min(1).max(100).optional(),
   notificationSoundId: z.string().trim().min(1).max(100).optional(),
+  sortCompletedMode: z.string().trim().min(1).max(50).optional(),
+  sortSkippedMode: z.string().trim().min(1).max(50).optional(),
+  appBadgeEnabled: z.boolean().optional(),
+  widgetAction: z.string().trim().min(1).max(50).optional(),
+  healthUnits: z.string().trim().min(1).max(50).optional(),
+  startOfDay: z.string().trim().min(1).max(10).optional(),
+  notificationsEnabled: z.boolean().optional(),
 });
 
 export const updateSettingsSchema = z.object({

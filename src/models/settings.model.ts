@@ -18,6 +18,10 @@ const settingsSchema = new Schema(
       type: Boolean,
       default: DEFAULT_SETTINGS.soundsEnabled,
     },
+    vibrationEnabled: {
+      type: Boolean,
+      default: DEFAULT_SETTINGS.vibrationEnabled,
+    },
     vacationModeEnabled: {
       type: Boolean,
       default: DEFAULT_SETTINGS.vacationModeEnabled,
@@ -38,6 +42,34 @@ const settingsSchema = new Schema(
     notificationSoundId: {
       type: String,
       default: DEFAULT_SETTINGS.notificationSoundId,
+    },
+    sortCompletedMode: {
+      type: String,
+      default: DEFAULT_SETTINGS.sortCompletedMode,
+    },
+    sortSkippedMode: {
+      type: String,
+      default: DEFAULT_SETTINGS.sortSkippedMode,
+    },
+    appBadgeEnabled: {
+      type: Boolean,
+      default: DEFAULT_SETTINGS.appBadgeEnabled,
+    },
+    widgetAction: {
+      type: String,
+      default: DEFAULT_SETTINGS.widgetAction,
+    },
+    healthUnits: {
+      type: String,
+      default: DEFAULT_SETTINGS.healthUnits,
+    },
+    startOfDay: {
+      type: String,
+      default: DEFAULT_SETTINGS.startOfDay,
+    },
+    notificationsEnabled: {
+      type: Boolean,
+      default: DEFAULT_SETTINGS.notificationsEnabled,
     },
   },
   {

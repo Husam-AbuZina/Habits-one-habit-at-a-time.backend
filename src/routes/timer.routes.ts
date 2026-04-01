@@ -3,6 +3,7 @@ import {
   cancelTimer,
   getTimer,
   pauseTimer,
+  resetTimer,
   resumeTimer,
   startTimer,
   stopTimer,
@@ -24,5 +25,6 @@ router.post("/pause", validate(habitIdSchema), asyncHandler(pauseTimer));
 router.post("/resume", validate(habitIdSchema), asyncHandler(resumeTimer));
 router.post("/stop", validate(habitIdSchema), validate(timerStopSchema), asyncHandler(stopTimer));
 router.post("/cancel", validate(habitIdSchema), validate(timerCancelSchema), asyncHandler(cancelTimer));
+router.post("/reset", validate(habitIdSchema), validate(timerCancelSchema), asyncHandler(resetTimer));
 
 export default router;

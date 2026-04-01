@@ -76,6 +76,10 @@ export const listHabits = async (req: Request, res: Response) => {
     filters.intent = req.query.intent;
   }
 
+  if (typeof req.query.goalFrequency === "string") {
+    filters.goalFrequency = req.query.goalFrequency;
+  }
+
   const habits = await HabitModel.find(filters).sort({ isArchived: 1, order: 1, createdAt: 1 });
   const selectedDate = getSelectedDate(req);
 

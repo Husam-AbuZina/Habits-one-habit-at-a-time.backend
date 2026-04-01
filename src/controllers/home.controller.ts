@@ -112,3 +112,14 @@ export const getHomeHabits = async (req: Request, res: Response) => {
       : home.habitsForHome.filter((habit) => habit.skippedAt === null),
   });
 };
+
+export const getHomeByQuery = async (req: Request, res: Response) => {
+  req.params.date = typeof req.query.date === "string" ? req.query.date : toDateOnlyString(new Date());
+  return getHome(req, res);
+};
+
+export const getHomeWeekByQuery = async (req: Request, res: Response) => {
+  req.params.date =
+    typeof req.query.anchorDate === "string" ? req.query.anchorDate : toDateOnlyString(new Date());
+  return getHomeWeekStrip(req, res);
+};

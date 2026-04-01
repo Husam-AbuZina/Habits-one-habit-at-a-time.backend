@@ -1,9 +1,17 @@
 export const DEFAULT_SETTINGS = {
   appearanceLabel: "system",
   soundsEnabled: true,
+  vibrationEnabled: true,
   vacationModeEnabled: false,
   weekStartsOn: "monday",
   completionSoundId: "success-1",
   failureSoundId: "failure-1",
   notificationSoundId: "notification-1",
+  sortCompletedMode: "bottom",
+  sortSkippedMode: "bottom",
+  appBadgeEnabled: true,
+  widgetAction: "open-app",
+  healthUnits: "metric",
+  startOfDay: "00:00",
+  notificationsEnabled: true,
 } as const;

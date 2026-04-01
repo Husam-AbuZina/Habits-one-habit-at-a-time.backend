@@ -6,6 +6,7 @@ import {
   patchHistoryDay,
   putHistoryDay,
 } from "../controllers/history.controller";
+import historyActionsRoutes from "./history-actions.routes";
 import { validate } from "../middleware/validate";
 import {
   historyDaySchema,
@@ -21,6 +22,7 @@ router.get("/", validate(historyRangeSchema), asyncHandler(listHistory));
 router.get("/:date", validate(historyDaySchema), asyncHandler(getHistoryDay));
 router.put("/:date", validate(putHistoryDaySchema), asyncHandler(putHistoryDay));
 router.patch("/:date", validate(patchHistoryDaySchema), asyncHandler(patchHistoryDay));
+router.use("/:date", historyActionsRoutes);
 router.delete("/:date", validate(historyDaySchema), asyncHandler(deleteHistoryDay));
 
 export default router;

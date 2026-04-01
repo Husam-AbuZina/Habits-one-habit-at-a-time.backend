@@ -178,6 +178,11 @@ const habitSchema = new Schema(
       default: 0,
       index: true,
     },
+    listIds: {
+      type: [Schema.Types.ObjectId],
+      ref: "List",
+      default: [],
+    },
     history: {
       type: habitHistorySchema,
       required: true,

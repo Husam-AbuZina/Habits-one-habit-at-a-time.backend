@@ -183,3 +183,40 @@ export const deleteMe = async (req: Request, res: Response) => {
 
   return res.status(StatusCodes.NO_CONTENT).send();
 };
+
+export const socialAuth = async (
+  req: Request,
+  res: Response,
+  provider: "apple" | "google",
+) => {
+  const email = req.body.email ?? `${provider}-${Date.now()}@example.local`;
+  let user = await UserModel.findOne({ email });
+
+  if (!user) {
+    user = await UserModel.create({
+      email,
+      passwordHash: await hashPassword(`${provider}:${req.body.token}`),
+      name: req.body.name ?? null,
+      avatar: req.body.avatar ?? null,
+    });
+  }
+
+  await ensureUserSettings(user._id.toString());
+
+  const tokens = await issueAuthTokens(
+    { _id: user._id.toString(), email: user.email },
+    {
+      userAgent: req.get("user-agent"),
+      ipAddress: pickRequestIp(req.headers["x-forwarded-for"]) ?? req.ip ?? null,
+    },
+  );
+
+  return res.json({
+    provider,
+    user: serializeUser(user),
+    tokens,
+  });
+};
+
+export const appleAuth = async (req: Request, res: Response) => socialAuth(req, res, "apple");
+export const googleAuth = async (req: Request, res: Response) => socialAuth(req, res, "google");
