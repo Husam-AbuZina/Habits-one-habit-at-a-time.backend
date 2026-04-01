@@ -92,3 +92,105 @@ export const soundIdSchema = z.object({
     soundId: z.string().min(1),
   }),
 });
+
+const dateValueSchema = z.string().datetime().or(z.string().date());
+
+const noteBodySchema = z.object({
+  content: z.string().trim().min(1).max(4000),
+  date: dateValueSchema.optional(),
+});
+
+const noteIdParamsSchema = z.object({
+  habitId: z.string().min(1),
+  noteId: z.string().min(1),
+});
+
+const historyEntryBodySchema = z.object({
+  completedCount: z.number().nonnegative().optional(),
+  status: z.enum(["undone", "partial", "done"]).optional(),
+  isSkipped: z.boolean().optional(),
+});
+
+export const scheduleValidationSchema = z.object({
+  body: z.object({
+    date: dateValueSchema,
+  }),
+});
+
+export const putScheduleSchema = z.object({
+  body: z.record(z.string(), z.unknown()).nullable(),
+});
+
+export const patchScheduleSchema = z.object({
+  body: z
+    .record(z.string(), z.unknown())
+    .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+});
+
+export const listNotesSchema = z.object({
+  params: z.object({
+    habitId: z.string().min(1),
+  }),
+  query: z.object({
+    date: dateValueSchema.optional(),
+    limit: z.coerce.number().int().positive().max(100).optional(),
+    page: z.coerce.number().int().positive().optional(),
+  }),
+});
+
+export const createNoteSchema = z.object({
+  params: z.object({
+    habitId: z.string().min(1),
+  }),
+  body: noteBodySchema,
+});
+
+export const noteIdSchema = z.object({
+  params: noteIdParamsSchema,
+});
+
+export const updateNoteSchema = z.object({
+  params: z.object(noteIdParamsSchema),
+  body: z.object({
+    content: z.string().trim().min(1).max(4000),
+  }),
+});
+
+export const historyRangeSchema = z.object({
+  params: z.object({
+    habitId: z.string().min(1),
+  }),
+  query: z.object({
+    from: dateValueSchema.optional(),
+    to: dateValueSchema.optional(),
+  }),
+});
+
+export const historyDaySchema = z.object({
+  params: z.object({
+    habitId: z.string().min(1),
+    date: z.string().min(1),
+  }),
+});
+
+export const putHistoryDaySchema = z.object({
+  params: z.object({
+    habitId: z.string().min(1),
+    date: z.string().min(1),
+  }),
+  body: z.object({
+    completedCount: z.number().nonnegative(),
+    status: z.enum(["undone", "partial", "done"]).optional(),
+    isSkipped: z.boolean(),
+  }),
+});
+
+export const patchHistoryDaySchema = z.object({
+  params: z.object({
+    habitId: z.string().min(1),
+    date: z.string().min(1),
+  }),
+  body: historyEntryBodySchema.refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field is required",
+  }),
+});

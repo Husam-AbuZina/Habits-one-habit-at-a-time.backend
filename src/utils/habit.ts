@@ -41,6 +41,36 @@ const emptyEntry = {
   isSkipped: false,
 };
 
+export const deriveHistoryStatus = ({
+  intent,
+  goalCount,
+  completedCount,
+  isSkipped,
+}: {
+  intent: "build" | "break";
+  goalCount: number;
+  completedCount: number;
+  isSkipped: boolean;
+}) => {
+  if (isSkipped) {
+    return "undone" as const;
+  }
+
+  if (intent === "build") {
+    return completedCount >= goalCount ? ("done" as const) : ("undone" as const);
+  }
+
+  if (completedCount === 0) {
+    return "done" as const;
+  }
+
+  if (completedCount > 0 && completedCount <= goalCount) {
+    return "partial" as const;
+  }
+
+  return "undone" as const;
+};
+
 export const serializeHabit = (habit: HabitLike, selectedDate?: string) => {
   const dateKey = selectedDate ? toDateOnlyString(selectedDate) : toDateOnlyString(new Date());
   const dayEntry =
@@ -107,3 +137,6 @@ export const countCompletionStatus = (habit: HabitLike, selectedDate?: string) =
     isSkipped: false,
   };
 };
+
+export const findHistoryEntry = (habit: HabitLike, selectedDate: string) =>
+  habit.history?.entries?.find((entry) => entry.date === toDateOnlyString(selectedDate)) ?? null;

@@ -19,6 +19,9 @@ import {
   updateHabitSchema,
 } from "../schemas/habit.schema";
 import { asyncHandler } from "../utils/async-handler";
+import historyRoutes from "./history.routes";
+import notesRoutes from "./notes.routes";
+import scheduleRoutes from "./schedule.routes";
 
 const router = Router();
 
@@ -37,5 +40,8 @@ router.patch(
 router.delete("/:habitId", validate(habitIdSchema), asyncHandler(deleteHabit));
 router.post("/:habitId/archive", validate(habitIdSchema), asyncHandler(archiveHabit));
 router.post("/:habitId/unarchive", validate(habitIdSchema), asyncHandler(unarchiveHabit));
+router.use("/:habitId/schedule", scheduleRoutes);
+router.use("/:habitId/notes", notesRoutes);
+router.use("/:habitId/history", historyRoutes);
 
 export default router;
