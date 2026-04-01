@@ -173,6 +173,18 @@ export const historyDaySchema = z.object({
   }),
 });
 
+export const habitDayParamsSchema = historyDaySchema;
+
+export const addAmountSchema = z.object({
+  params: z.object({
+    habitId: z.string().min(1),
+    date: z.string().min(1),
+  }),
+  body: z.object({
+    amount: z.number().positive(),
+  }),
+});
+
 export const putHistoryDaySchema = z.object({
   params: z.object({
     habitId: z.string().min(1),

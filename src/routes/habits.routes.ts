@@ -19,6 +19,7 @@ import {
   updateHabitSchema,
 } from "../schemas/habit.schema";
 import { asyncHandler } from "../utils/async-handler";
+import dayActionsRoutes from "./day-actions.routes";
 import historyRoutes from "./history.routes";
 import notesRoutes from "./notes.routes";
 import scheduleRoutes from "./schedule.routes";
@@ -43,5 +44,6 @@ router.post("/:habitId/unarchive", validate(habitIdSchema), asyncHandler(unarchi
 router.use("/:habitId/schedule", scheduleRoutes);
 router.use("/:habitId/notes", notesRoutes);
 router.use("/:habitId/history", historyRoutes);
+router.use("/:habitId/days/:date", dayActionsRoutes);
 
 export default router;
