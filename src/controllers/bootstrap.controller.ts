@@ -1,8 +1,9 @@
 import type { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
 import { UserModel } from "../models/user.model";
+import { getHabitCounters } from "../services/habit.service";
 import { ensureUserSettings } from "../services/settings.service";
 import { ApiError } from "../utils/api-error";
-import { StatusCodes } from "http-status-codes";
 
 export const getBootstrap = async (req: Request, res: Response) => {
   const user = await UserModel.findById(req.auth?.sub);
@@ -12,6 +13,7 @@ export const getBootstrap = async (req: Request, res: Response) => {
   }
 
   const settings = await ensureUserSettings(user._id.toString());
+  const counters = await getHabitCounters(user._id.toString());
 
   return res.json({
     user: {
@@ -23,11 +25,6 @@ export const getBootstrap = async (req: Request, res: Response) => {
       updatedAt: user.updatedAt,
     },
     settings,
-    counters: {
-      activeHabitsCount: 0,
-      archivedHabitsCount: 0,
-      todayCompletedCount: 0,
-      todaySkippedCount: 0,
-    },
+    counters,
   });
 };
