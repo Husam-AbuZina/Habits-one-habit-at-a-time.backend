@@ -185,6 +185,50 @@ export const addAmountSchema = z.object({
   }),
 });
 
+export const timerStartSchema = z.object({
+  body: z.object({
+    date: dateValueSchema.optional(),
+    startedAt: z.string().datetime().optional(),
+  }),
+});
+
+export const timerStopSchema = z.object({
+  body: z.object({
+    date: dateValueSchema.optional(),
+    durationSeconds: z.number().nonnegative().optional(),
+  }),
+});
+
+export const timerCancelSchema = z.object({
+  body: z.object({
+    date: dateValueSchema.optional(),
+  }),
+});
+
+export const homeDateSchema = z.object({
+  params: z.object({
+    date: z.string().min(1),
+  }),
+  query: z.object({
+    includeWeekStrip: z
+      .enum(["true", "false"])
+      .transform((value) => value === "true")
+      .optional(),
+  }),
+});
+
+export const homeHabitsQuerySchema = z.object({
+  params: z.object({
+    date: z.string().min(1),
+  }),
+  query: z.object({
+    includeSkipped: z
+      .enum(["true", "false"])
+      .transform((value) => value === "true")
+      .optional(),
+  }),
+});
+
 export const putHistoryDaySchema = z.object({
   params: z.object({
     habitId: z.string().min(1),

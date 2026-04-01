@@ -5,6 +5,7 @@ import morgan from "morgan";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/error-handler";
 import habitsRoutes from "./routes/habits.routes";
+import homeRoutes from "./routes/home.routes";
 import appRoutes from "./routes/app.routes";
 import authRoutes from "./routes/auth.routes";
 import settingsRoutes from "./routes/settings.routes";
@@ -23,6 +24,7 @@ app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
 
 app.use("/", appRoutes);
 app.use("/auth", authRoutes);
+app.use("/home", homeRoutes);
 app.use("/sounds", soundsRoutes);
 app.use("/habits", habitsRoutes);
 app.use("/settings", settingsRoutes);

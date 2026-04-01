@@ -131,6 +131,43 @@ const habitSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    timer: {
+      type: {
+        isRunning: {
+          type: Boolean,
+          default: false,
+        },
+        isPaused: {
+          type: Boolean,
+          default: false,
+        },
+        startedAt: {
+          type: Date,
+          default: null,
+        },
+        pausedAt: {
+          type: Date,
+          default: null,
+        },
+        accumulatedSeconds: {
+          type: Number,
+          default: 0,
+          min: 0,
+        },
+        activeDate: {
+          type: String,
+          default: null,
+        },
+      },
+      default: () => ({
+        isRunning: false,
+        isPaused: false,
+        startedAt: null,
+        pausedAt: null,
+        accumulatedSeconds: 0,
+        activeDate: null,
+      }),
+    },
     skippedAt: {
       type: Date,
       default: null,
