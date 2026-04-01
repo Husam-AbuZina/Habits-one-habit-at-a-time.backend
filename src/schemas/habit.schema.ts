@@ -229,6 +229,12 @@ export const homeHabitsQuerySchema = z.object({
   }),
 });
 
+export const historyAggregateRangeSchema = z.object({
+  query: z.object({
+    range: z.string().regex(/^\d+d$/i).optional(),
+  }),
+});
+
 export const putHistoryDaySchema = z.object({
   params: z.object({
     habitId: z.string().min(1),
