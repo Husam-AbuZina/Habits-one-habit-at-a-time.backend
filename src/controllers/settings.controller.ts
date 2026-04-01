@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { SettingsModel } from "../models/settings.model";
 import { ensureUserSettings } from "../services/settings.service";
+import { getHabitCounters } from "../services/habit.service";
 
 const updateSettings = async (req: Request, res: Response) => {
   const settings = await ensureUserSettings(req.auth!.sub);
@@ -32,13 +33,11 @@ export const patchNotificationSound = updateSettings;
 
 export const getSummaryCounters = async (req: Request, res: Response) => {
   const settings = await SettingsModel.findOne({ userId: req.auth!.sub }).lean();
+  const counters = await getHabitCounters(req.auth!.sub);
 
   return res.json({
     summary: {
-      activeHabitsCount: 0,
-      archivedHabitsCount: 0,
-      todayCompletedCount: 0,
-      todaySkippedCount: 0,
+      ...counters,
       weekStartsOn: settings?.weekStartsOn ?? "monday",
     },
   });
