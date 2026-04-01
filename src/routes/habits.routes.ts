@@ -9,6 +9,7 @@ import {
   unarchiveHabit,
   updateHabit,
 } from "../controllers/habits.controller";
+import { recalculateHabit } from "../controllers/rules.controller";
 import { requireAuth } from "../middleware/auth";
 import { validate } from "../middleware/validate";
 import {
@@ -22,7 +23,9 @@ import { asyncHandler } from "../utils/async-handler";
 import dayActionsRoutes from "./day-actions.routes";
 import historyRoutes from "./history.routes";
 import notesRoutes from "./notes.routes";
+import rulesRoutes from "./rules.routes";
 import scheduleRoutes from "./schedule.routes";
+import timerRoutes from "./timer.routes";
 
 const router = Router();
 
@@ -45,5 +48,8 @@ router.use("/:habitId/schedule", scheduleRoutes);
 router.use("/:habitId/notes", notesRoutes);
 router.use("/:habitId/history", historyRoutes);
 router.use("/:habitId/days/:date", dayActionsRoutes);
+router.use("/:habitId/days/:date", rulesRoutes);
+router.use("/:habitId/timer", timerRoutes);
+router.post("/:habitId/recalculate", validate(habitIdSchema), asyncHandler(recalculateHabit));
 
 export default router;
