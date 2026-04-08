@@ -9,6 +9,7 @@ type HabitLike = {
   iconKey?: string | null;
   colorValue?: unknown;
   schedule?: unknown;
+  description?: string | null;
   notes?: string[] | null;
   intent: "build" | "break";
   goalFrequency?: string | null;
@@ -86,6 +87,7 @@ export const serializeHabit = (habit: HabitLike, selectedDate?: string) => {
     iconKey: habit.iconKey ?? null,
     colorValue: habit.colorValue ?? null,
     schedule: habit.schedule ?? null,
+    description: habit.description ?? null,
     notes: habit.notes ?? [],
     intent: habit.intent,
     goalFrequency: habit.goalFrequency ?? "daily",

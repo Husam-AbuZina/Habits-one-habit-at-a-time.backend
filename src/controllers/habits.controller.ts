@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { HabitModel } from "../models/habit.model";
+import { NoteModel } from "../models/note.model";
+import { ReminderModel } from "../models/reminder.model";
 import { ApiError } from "../utils/api-error";
 import { serializeHabit } from "../utils/habit";
 import { toDateOnlyString } from "../utils/date";
@@ -35,6 +37,7 @@ export const createHabit = async (req: Request, res: Response) => {
     iconKey: req.body.iconKey ?? null,
     colorValue: req.body.colorValue ?? null,
     schedule: req.body.schedule ?? null,
+    description: req.body.description ?? null,
     notes: req.body.notes ?? [],
     intent: req.body.intent,
     goalFrequency: req.body.goalFrequency ?? "daily",
@@ -113,6 +116,7 @@ export const updateHabit = async (req: Request, res: Response) => {
     "iconKey",
     "colorValue",
     "schedule",
+    "description",
     "notes",
     "intent",
     "goalFrequency",
@@ -153,7 +157,11 @@ export const updateHabit = async (req: Request, res: Response) => {
 export const deleteHabit = async (req: Request, res: Response) => {
   const habitId = String(req.params.habitId);
   await getOwnedHabit(req.auth!.sub, habitId);
-  await HabitModel.deleteOne({ _id: habitId, userId: req.auth!.sub });
+  await Promise.all([
+    HabitModel.deleteOne({ _id: habitId, userId: req.auth!.sub }),
+    NoteModel.deleteMany({ habitId, userId: req.auth!.sub }),
+    ReminderModel.deleteMany({ habitId, userId: req.auth!.sub }),
+  ]);
 
   return res.status(StatusCodes.NO_CONTENT).send();
 };

@@ -12,6 +12,26 @@ const getOwnedHabit = async (userId: string, habitId: string) => {
   return habit;
 };
 
+const getDayEntry = (habit: any, date: string) => {
+  const dateKey = toDateOnlyString(date);
+  return (
+    habit.history.entries.find((entry: { date: string }) => entry.date === dateKey) ?? {
+      date: dateKey,
+      completedCount: 0,
+      status: "undone",
+      isSkipped: false,
+    }
+  );
+};
+
+const clampBuildCount = (habit: any, nextCount: number) => {
+  if (habit.intent === "build" && habit.allowsOverflow === false) {
+    return Math.min(nextCount, habit.goalCount);
+  }
+
+  return Math.max(0, nextCount);
+};
+
 const respond = async (req: Request, res: Response, completedCount: number, isSkipped = false) => {
   const habit = await getOwnedHabit(req.auth!.sub, String(req.params.habitId));
   const date = String(req.params.date);
@@ -23,48 +43,56 @@ const respond = async (req: Request, res: Response, completedCount: number, isSk
 export const historyIncrement = async (req: Request, res: Response) => {
   const habit = await getOwnedHabit(req.auth!.sub, String(req.params.habitId));
   const date = String(req.params.date);
-  const current = habit.history.entries.find((e) => e.date === toDateOnlyString(date))?.completedCount ?? 0;
-  return respond(req, res, current + 1);
+  const current = getDayEntry(habit, date).completedCount;
+  return respond(req, res, clampBuildCount(habit, current + 1));
 };
 export const historyDecrement = async (req: Request, res: Response) => {
   const habit = await getOwnedHabit(req.auth!.sub, String(req.params.habitId));
   const date = String(req.params.date);
-  const current = habit.history.entries.find((e) => e.date === toDateOnlyString(date))?.completedCount ?? 0;
-  return respond(req, res, Math.max(0, current - 1));
+  const current = getDayEntry(habit, date).completedCount;
+  return respond(req, res, clampBuildCount(habit, Math.max(0, current - 1)));
 };
 export const historyFill = async (req: Request, res: Response) => {
   const habit = await getOwnedHabit(req.auth!.sub, String(req.params.habitId));
   return respond(req, res, habit.goalCount);
 };
-export const historyUndo = async (req: Request, res: Response) => respond(req, res, 0);
+export const historyUndo = async (req: Request, res: Response) => {
+  const habit = await getOwnedHabit(req.auth!.sub, String(req.params.habitId));
+  const date = String(req.params.date);
+  const current = getDayEntry(habit, date).completedCount;
+  if (habit.intent === "build" && current > habit.goalCount) {
+    return respond(req, res, habit.goalCount);
+  }
+  return respond(req, res, 0);
+};
 export const historySkip = async (req: Request, res: Response) => {
   const habit = await getOwnedHabit(req.auth!.sub, String(req.params.habitId));
   const date = String(req.params.date);
-  const current = habit.history.entries.find((e) => e.date === toDateOnlyString(date))?.completedCount ?? 0;
+  const current = getDayEntry(habit, date).completedCount;
   return respond(req, res, current, true);
 };
 export const historyUnskip = async (req: Request, res: Response) => {
   const habit = await getOwnedHabit(req.auth!.sub, String(req.params.habitId));
   const date = String(req.params.date);
-  const current = habit.history.entries.find((e) => e.date === toDateOnlyString(date))?.completedCount ?? 0;
+  const current = getDayEntry(habit, date).completedCount;
   return respond(req, res, current, false);
 };
 export const historyAddDuration = async (req: Request, res: Response) => {
   const habit = await getOwnedHabit(req.auth!.sub, String(req.params.habitId));
   const date = String(req.params.date);
-  const current = habit.history.entries.find((e) => e.date === toDateOnlyString(date))?.completedCount ?? 0;
+  const current = getDayEntry(habit, date).completedCount;
   const add = habit.unitType === "minutes" ? Math.max(1, Math.floor(Number(req.body.durationSeconds) / 60)) : Number(req.body.durationSeconds);
   return respond(req, res, current + add);
 };
 
 export const postHabitAction = async (req: Request, res: Response) => {
-  const { action, date, value } = req.body;
+  const { type, date, value } = req.body;
   req.params.date = date;
-  if (action === "increment") return historyIncrement(req, res);
-  if (action === "decrement") return historyDecrement(req, res);
-  if (action === "fill") return historyFill(req, res);
-  if (action === "undo") return historyUndo(req, res);
-  if (action === "skip") return historySkip(req, res);
-  if (action === "unskip") return historyUnskip(req, res);
+  if (type === "increment") return historyIncrement(req, res);
+  if (type === "decrement") return historyDecrement(req, res);
+  if (type === "fill") return historyFill(req, res);
+  if (type === "undo") return historyUndo(req, res);
+  if (type === "skip") return historySkip(req, res);
+  if (type === "unskip") return historyUnskip(req, res);
   return respond(req, res, Number(value ?? 0), false);
 };

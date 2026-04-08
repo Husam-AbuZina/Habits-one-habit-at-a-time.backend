@@ -84,6 +84,12 @@ const habitSchema = new Schema(
       type: Schema.Types.Mixed,
       default: null,
     },
+    description: {
+      type: String,
+      trim: true,
+      default: null,
+      maxlength: 4000,
+    },
     notes: {
       type: [String],
       default: [],

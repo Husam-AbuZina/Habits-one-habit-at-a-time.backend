@@ -33,11 +33,19 @@ export const updateMeSchema = z.object({
     }),
 });
 
-export const socialAuthSchema = z.object({
+export const appleAuthSchema = z.object({
   body: z.object({
-    token: z.string().min(1),
-    email: z.string().email().optional(),
+    identityToken: z.string().min(1),
+    appInfo: z.record(z.string(), z.unknown()).optional(),
+    deviceInfo: z.record(z.string(), z.unknown()).optional(),
     name: z.string().trim().min(1).max(80).optional(),
-    avatar: z.string().trim().url().optional(),
+  }),
+});
+
+export const googleAuthSchema = z.object({
+  body: z.object({
+    idToken: z.string().min(1),
+    appInfo: z.record(z.string(), z.unknown()).optional(),
+    deviceInfo: z.record(z.string(), z.unknown()).optional(),
   }),
 });

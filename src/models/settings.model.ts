@@ -10,26 +10,21 @@ const settingsSchema = new Schema(
       unique: true,
       index: true,
     },
-    appearanceLabel: {
+    appearanceMode: {
       type: String,
-      default: DEFAULT_SETTINGS.appearanceLabel,
+      default: DEFAULT_SETTINGS.appearanceMode,
+    },
+    appIconMode: {
+      type: String,
+      default: DEFAULT_SETTINGS.appIconMode,
+    },
+    language: {
+      type: String,
+      default: DEFAULT_SETTINGS.language,
     },
     soundsEnabled: {
       type: Boolean,
       default: DEFAULT_SETTINGS.soundsEnabled,
-    },
-    vibrationEnabled: {
-      type: Boolean,
-      default: DEFAULT_SETTINGS.vibrationEnabled,
-    },
-    vacationModeEnabled: {
-      type: Boolean,
-      default: DEFAULT_SETTINGS.vacationModeEnabled,
-    },
-    weekStartsOn: {
-      type: String,
-      enum: ["sunday", "monday"],
-      default: DEFAULT_SETTINGS.weekStartsOn,
     },
     completionSoundId: {
       type: String,
@@ -43,6 +38,11 @@ const settingsSchema = new Schema(
       type: String,
       default: DEFAULT_SETTINGS.notificationSoundId,
     },
+    weekStartsOn: {
+      type: String,
+      enum: ["sunday", "monday"],
+      default: DEFAULT_SETTINGS.weekStartsOn,
+    },
     sortCompletedMode: {
       type: String,
       default: DEFAULT_SETTINGS.sortCompletedMode,
@@ -55,21 +55,46 @@ const settingsSchema = new Schema(
       type: Boolean,
       default: DEFAULT_SETTINGS.appBadgeEnabled,
     },
-    widgetAction: {
-      type: String,
-      default: DEFAULT_SETTINGS.widgetAction,
+    includeDailyInBadge: {
+      type: Boolean,
+      default: DEFAULT_SETTINGS.includeDailyInBadge,
     },
-    healthUnits: {
+    includeWeeklyInBadge: {
+      type: Boolean,
+      default: DEFAULT_SETTINGS.includeWeeklyInBadge,
+    },
+    includeMonthlyInBadge: {
+      type: Boolean,
+      default: DEFAULT_SETTINGS.includeMonthlyInBadge,
+    },
+    widgetActionMode: {
       type: String,
-      default: DEFAULT_SETTINGS.healthUnits,
+      default: DEFAULT_SETTINGS.widgetActionMode,
+    },
+    distanceUnit: {
+      type: String,
+      default: DEFAULT_SETTINGS.distanceUnit,
+    },
+    volumeUnit: {
+      type: String,
+      default: DEFAULT_SETTINGS.volumeUnit,
     },
     startOfDay: {
       type: String,
       default: DEFAULT_SETTINGS.startOfDay,
     },
-    notificationsEnabled: {
+    vacationModeEnabled: {
       type: Boolean,
-      default: DEFAULT_SETTINGS.notificationsEnabled,
+      default: DEFAULT_SETTINGS.vacationModeEnabled,
+    },
+    vacationModeScope: {
+      type: String,
+      default: DEFAULT_SETTINGS.vacationModeScope,
+    },
+    vacationModeHabitIds: {
+      type: [Schema.Types.ObjectId],
+      ref: "Habit",
+      default: DEFAULT_SETTINGS.vacationModeHabitIds,
     },
   },
   {

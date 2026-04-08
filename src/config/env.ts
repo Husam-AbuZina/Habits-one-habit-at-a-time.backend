@@ -12,6 +12,8 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
   JWT_REFRESH_EXPIRES_IN: z.string().default("30d"),
   CLIENT_ORIGIN: z.string().default("*"),
+  GOOGLE_CLIENT_IDS: z.string().optional(),
+  APPLE_CLIENT_IDS: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);

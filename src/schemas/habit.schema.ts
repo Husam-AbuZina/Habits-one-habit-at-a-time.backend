@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+const dateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const scheduleSchema = z.record(z.string(), z.unknown()).nullable().optional();
 const remindMeSchema = z
   .union([z.boolean(), z.record(z.string(), z.unknown()), z.null()])
@@ -13,6 +14,7 @@ const habitBodyBase = {
   iconKey: z.string().trim().min(1).max(80).nullable().optional(),
   colorValue: z.union([z.string(), z.number()]).nullable().optional(),
   schedule: scheduleSchema,
+  description: z.string().trim().max(4000).nullable().optional(),
   notes: z.array(z.string().trim().min(1).max(1000)).optional(),
   intent: z.enum(["build", "break"]),
   goalFrequency: z.string().trim().min(1).max(50).optional(),
@@ -24,7 +26,7 @@ const habitBodyBase = {
   allowsOverflow: z.boolean().optional(),
   isArchived: z.boolean().optional(),
   isTimerRunning: z.boolean().optional(),
-  skippedAt: z.string().datetime().nullable().optional(),
+  skippedAt: dateOnlySchema.nullable().optional(),
 };
 
 export const createHabitSchema = z.object({
@@ -41,6 +43,7 @@ export const updateHabitSchema = z.object({
       iconKey: habitBodyBase.iconKey,
       colorValue: habitBodyBase.colorValue,
       schedule: habitBodyBase.schedule,
+      description: habitBodyBase.description,
       notes: habitBodyBase.notes,
       intent: habitBodyBase.intent.optional(),
       goalFrequency: habitBodyBase.goalFrequency,
@@ -71,7 +74,7 @@ export const listHabitsSchema = z.object({
       .optional(),
     intent: z.enum(["build", "break"]).optional(),
     goalFrequency: z.string().optional(),
-    date: z.string().datetime().or(z.string().date()).optional(),
+    date: dateOnlySchema.optional(),
     category: z.string().optional(),
   }),
 });
@@ -94,7 +97,7 @@ export const soundIdSchema = z.object({
   }),
 });
 
-const dateValueSchema = z.string().datetime().or(z.string().date());
+const dateValueSchema = dateOnlySchema;
 
 const noteBodySchema = z.object({
   content: z.string().trim().min(1).max(4000),
@@ -170,7 +173,7 @@ export const historyRangeSchema = z.object({
 export const historyDaySchema = z.object({
   params: z.object({
     habitId: z.string().min(1),
-    date: z.string().min(1),
+    date: dateOnlySchema,
   }),
 });
 
@@ -188,21 +191,21 @@ export const addAmountSchema = z.object({
 
 export const timerStartSchema = z.object({
   body: z.object({
-    date: dateValueSchema.optional(),
+    date: dateOnlySchema.optional(),
     startedAt: z.string().datetime().optional(),
   }),
 });
 
 export const timerStopSchema = z.object({
   body: z.object({
-    date: dateValueSchema.optional(),
+    date: dateOnlySchema.optional(),
     durationSeconds: z.number().nonnegative().optional(),
   }),
 });
 
 export const timerCancelSchema = z.object({
   body: z.object({
-    date: dateValueSchema.optional(),
+    date: dateOnlySchema.optional(),
   }),
 });
 
@@ -307,7 +310,6 @@ export const updateReminderSchema = z.object({
 export const notificationPrefsSchema = z.object({
   body: z
     .object({
-      notificationsEnabled: z.boolean().optional(),
       soundsEnabled: z.boolean().optional(),
       notificationSoundId: z.string().trim().min(1).max(100).optional(),
       appBadgeEnabled: z.boolean().optional(),
@@ -320,6 +322,12 @@ export const importJsonSchema = z.object({
     settings: z.record(z.string(), z.unknown()).optional(),
     habits: z.array(z.record(z.string(), z.unknown())).optional(),
     notes: z.array(z.record(z.string(), z.unknown())).optional(),
+  }),
+});
+
+export const descriptionSchema = z.object({
+  body: z.object({
+    text: z.string().trim().max(4000),
   }),
 });
 
@@ -362,8 +370,8 @@ export const actionSchema = z.object({
     habitId: z.string().min(1),
   }),
   body: z.object({
-    date: z.string().datetime().or(z.string().date()),
-    action: z.enum(["increment", "decrement", "fill", "undo", "skip", "unskip", "set_value"]),
+    date: dateOnlySchema,
+    type: z.enum(["increment", "decrement", "fill", "set_value", "undo", "skip", "unskip"]),
     value: z.number().nonnegative().optional(),
   }),
 });

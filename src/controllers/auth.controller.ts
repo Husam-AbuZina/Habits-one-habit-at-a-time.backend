@@ -2,6 +2,11 @@ import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import { RefreshTokenModel } from "../models/refresh-token.model";
 import { UserModel } from "../models/user.model";
+import {
+  signInVerifiedSocialUser,
+  verifyAppleIdentity,
+  verifyGoogleIdentity,
+} from "../services/social-auth.service";
 import { ensureUserSettings } from "../services/settings.service";
 import { issueAuthTokens } from "../services/token.service";
 import { ApiError } from "../utils/api-error";
@@ -189,27 +194,15 @@ export const socialAuth = async (
   res: Response,
   provider: "apple" | "google",
 ) => {
-  const email = req.body.email ?? `${provider}-${Date.now()}@example.local`;
-  let user = await UserModel.findOne({ email });
+  const profile =
+    provider === "apple"
+      ? await verifyAppleIdentity(req.body.identityToken, req.body.name)
+      : await verifyGoogleIdentity(req.body.idToken);
 
-  if (!user) {
-    user = await UserModel.create({
-      email,
-      passwordHash: await hashPassword(`${provider}:${req.body.token}`),
-      name: req.body.name ?? null,
-      avatar: req.body.avatar ?? null,
-    });
-  }
-
-  await ensureUserSettings(user._id.toString());
-
-  const tokens = await issueAuthTokens(
-    { _id: user._id.toString(), email: user.email },
-    {
-      userAgent: req.get("user-agent"),
-      ipAddress: pickRequestIp(req.headers["x-forwarded-for"]) ?? req.ip ?? null,
-    },
-  );
+  const { user, tokens } = await signInVerifiedSocialUser(profile, {
+    userAgent: req.get("user-agent"),
+    ipAddress: pickRequestIp(req.headers["x-forwarded-for"]) ?? req.ip ?? null,
+  });
 
   return res.json({
     provider,

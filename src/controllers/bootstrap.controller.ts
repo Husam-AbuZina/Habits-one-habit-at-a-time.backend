@@ -7,6 +7,30 @@ import { ensureUserSettings } from "../services/settings.service";
 import { ApiError } from "../utils/api-error";
 import { serializeHabit } from "../utils/habit";
 
+const serializeSettings = (settings: any) => ({
+  appearanceMode: settings.appearanceMode,
+  appIconMode: settings.appIconMode,
+  language: settings.language,
+  soundsEnabled: settings.soundsEnabled,
+  completionSoundId: settings.completionSoundId,
+  failureSoundId: settings.failureSoundId,
+  notificationSoundId: settings.notificationSoundId,
+  weekStartsOn: settings.weekStartsOn,
+  sortCompletedMode: settings.sortCompletedMode,
+  sortSkippedMode: settings.sortSkippedMode,
+  appBadgeEnabled: settings.appBadgeEnabled,
+  includeDailyInBadge: settings.includeDailyInBadge,
+  includeWeeklyInBadge: settings.includeWeeklyInBadge,
+  includeMonthlyInBadge: settings.includeMonthlyInBadge,
+  widgetActionMode: settings.widgetActionMode,
+  distanceUnit: settings.distanceUnit,
+  volumeUnit: settings.volumeUnit,
+  startOfDay: settings.startOfDay,
+  vacationModeEnabled: settings.vacationModeEnabled,
+  vacationModeScope: settings.vacationModeScope,
+  vacationModeHabitIds: (settings.vacationModeHabitIds ?? []).map(String),
+});
+
 export const getBootstrap = async (req: Request, res: Response) => {
   const user = await UserModel.findById(req.auth?.sub);
 
@@ -30,7 +54,7 @@ export const getBootstrap = async (req: Request, res: Response) => {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     },
-    settings,
+    settings: serializeSettings(settings),
     activeHabits: activeHabits.map((habit) => serializeHabit(habit)),
     archivedHabits: archivedHabits.map((habit) => serializeHabit(habit)),
     todaySummary: counters,

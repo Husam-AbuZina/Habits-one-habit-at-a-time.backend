@@ -23,6 +23,18 @@ const userSchema = new Schema(
       trim: true,
       default: null,
     },
+    appleSubject: {
+      type: String,
+      trim: true,
+      default: null,
+      index: true,
+    },
+    googleSubject: {
+      type: String,
+      trim: true,
+      default: null,
+      index: true,
+    },
   },
   {
     timestamps: true,

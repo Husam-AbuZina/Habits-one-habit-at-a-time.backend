@@ -1,47 +1,44 @@
 import type { Request, Response } from "express";
 import { HabitModel } from "../models/habit.model";
-import { NoteModel } from "../models/note.model";
-import { ReminderModel } from "../models/reminder.model";
-import { SettingsModel } from "../models/settings.model";
 import { ensureUserSettings } from "../services/settings.service";
+import { serializeHabit } from "../utils/habit";
 
-export const getSync = async (req: Request, res: Response) => {
-  const since = req.query.since ? new Date(String(req.query.since)) : new Date(0);
-  const [settings, habits, notes, reminders] = await Promise.all([
-    SettingsModel.findOne({ userId: req.auth!.sub, updatedAt: { $gte: since } }),
-    HabitModel.find({ userId: req.auth!.sub, updatedAt: { $gte: since } }),
-    NoteModel.find({ userId: req.auth!.sub, updatedAt: { $gte: since } }),
-    ReminderModel.find({ userId: req.auth!.sub, updatedAt: { $gte: since } }),
+export const pullSnapshot = async (req: Request, res: Response) => {
+  const [settings, habits] = await Promise.all([
+    ensureUserSettings(req.auth!.sub),
+    HabitModel.find({ userId: req.auth!.sub }).sort({ isArchived: 1, order: 1, createdAt: 1 }),
   ]);
-  res.json({ since, settings, habits, notes, reminders });
+
+  res.json({
+    pulledAt: new Date().toISOString(),
+    snapshot: {
+      settings,
+      habits: habits.map((habit) => serializeHabit(habit)),
+    },
+  });
 };
 
-export const pushSync = async (req: Request, res: Response) => {
+export const pushSnapshot = async (req: Request, res: Response) => {
   if (req.body.settings) {
     const settings = await ensureUserSettings(req.auth!.sub);
     Object.assign(settings, req.body.settings);
     await settings.save();
   }
+
   if (Array.isArray(req.body.habits)) {
     for (const habit of req.body.habits) {
       if (habit.id) {
-        await HabitModel.updateOne({ _id: habit.id, userId: req.auth!.sub }, { $set: habit });
+        await HabitModel.updateOne(
+          { _id: habit.id, userId: req.auth!.sub },
+          { $set: habit },
+        );
       }
     }
   }
-  if (Array.isArray(req.body.notes)) {
-    for (const note of req.body.notes) {
-      if (note.id) {
-        await NoteModel.updateOne({ _id: note.id, userId: req.auth!.sub }, { $set: note });
-      }
-    }
-  }
-  if (Array.isArray(req.body.reminders)) {
-    for (const reminder of req.body.reminders) {
-      if (reminder.id) {
-        await ReminderModel.updateOne({ _id: reminder.id, userId: req.auth!.sub }, { $set: reminder });
-      }
-    }
-  }
-  res.json({ accepted: true, syncedAt: new Date().toISOString() });
+
+  res.json({
+    applied: true,
+    lastWriteWins: true,
+    pushedAt: new Date().toISOString(),
+  });
 };

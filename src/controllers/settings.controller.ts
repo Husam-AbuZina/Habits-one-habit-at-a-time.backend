@@ -4,13 +4,37 @@ import { SettingsModel } from "../models/settings.model";
 import { ensureUserSettings } from "../services/settings.service";
 import { getHabitCounters } from "../services/habit.service";
 
+const serializeSettings = (settings: any) => ({
+  appearanceMode: settings.appearanceMode,
+  appIconMode: settings.appIconMode,
+  language: settings.language,
+  soundsEnabled: settings.soundsEnabled,
+  completionSoundId: settings.completionSoundId,
+  failureSoundId: settings.failureSoundId,
+  notificationSoundId: settings.notificationSoundId,
+  weekStartsOn: settings.weekStartsOn,
+  sortCompletedMode: settings.sortCompletedMode,
+  sortSkippedMode: settings.sortSkippedMode,
+  appBadgeEnabled: settings.appBadgeEnabled,
+  includeDailyInBadge: settings.includeDailyInBadge,
+  includeWeeklyInBadge: settings.includeWeeklyInBadge,
+  includeMonthlyInBadge: settings.includeMonthlyInBadge,
+  widgetActionMode: settings.widgetActionMode,
+  distanceUnit: settings.distanceUnit,
+  volumeUnit: settings.volumeUnit,
+  startOfDay: settings.startOfDay,
+  vacationModeEnabled: settings.vacationModeEnabled,
+  vacationModeScope: settings.vacationModeScope,
+  vacationModeHabitIds: (settings.vacationModeHabitIds ?? []).map(String),
+});
+
 const updateSettings = async (req: Request, res: Response) => {
   const settings = await ensureUserSettings(req.auth!.sub);
   Object.assign(settings, req.body);
   await settings.save();
 
   return res.status(StatusCodes.OK).json({
-    settings,
+    settings: serializeSettings(settings),
   });
 };
 
@@ -18,7 +42,7 @@ export const getSettings = async (req: Request, res: Response) => {
   const settings = await ensureUserSettings(req.auth!.sub);
 
   return res.json({
-    settings,
+    settings: serializeSettings(settings),
   });
 };
 

@@ -27,13 +27,13 @@ export const testNotification = async (_req: Request, res: Response) => {
 };
 export const getNotificationPreferences = async (req: Request, res: Response) => {
   const settings = await ensureUserSettings(req.auth!.sub);
-  res.json({ preferences: { notificationsEnabled: settings.notificationsEnabled, soundsEnabled: settings.soundsEnabled, notificationSoundId: settings.notificationSoundId, appBadgeEnabled: settings.appBadgeEnabled } });
+  res.json({ preferences: { soundsEnabled: settings.soundsEnabled, notificationSoundId: settings.notificationSoundId, appBadgeEnabled: settings.appBadgeEnabled } });
 };
 export const patchNotificationPreferences = async (req: Request, res: Response) => {
   const settings = await ensureUserSettings(req.auth!.sub);
   Object.assign(settings, req.body);
   await settings.save();
-  res.json({ preferences: { notificationsEnabled: settings.notificationsEnabled, soundsEnabled: settings.soundsEnabled, notificationSoundId: settings.notificationSoundId, appBadgeEnabled: settings.appBadgeEnabled } });
+  res.json({ preferences: { soundsEnabled: settings.soundsEnabled, notificationSoundId: settings.notificationSoundId, appBadgeEnabled: settings.appBadgeEnabled } });
 };
 
 export const listHabitReminders = async (req: Request, res: Response) => {
