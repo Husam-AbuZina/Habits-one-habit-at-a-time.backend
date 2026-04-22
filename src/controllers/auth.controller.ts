@@ -4,6 +4,7 @@ import { RefreshTokenModel } from "../models/refresh-token.model";
 import { UserModel } from "../models/user.model";
 import {
   signInVerifiedSocialUser,
+  verifyFirebaseIdentity,
   verifyAppleIdentity,
   verifyGoogleIdentity,
 } from "../services/social-auth.service";
@@ -195,9 +196,11 @@ export const socialAuth = async (
   provider: "apple" | "google",
 ) => {
   const profile =
-    provider === "apple"
-      ? await verifyAppleIdentity(req.body.identityToken, req.body.name)
-      : await verifyGoogleIdentity(req.body.idToken);
+    typeof req.body.firebaseIdToken === "string"
+      ? await verifyFirebaseIdentity(req.body.firebaseIdToken, provider)
+      : provider === "apple"
+        ? await verifyAppleIdentity(req.body.identityToken, req.body.name)
+        : await verifyGoogleIdentity(req.body.idToken);
 
   const { user, tokens } = await signInVerifiedSocialUser(profile, {
     userAgent: req.get("user-agent"),

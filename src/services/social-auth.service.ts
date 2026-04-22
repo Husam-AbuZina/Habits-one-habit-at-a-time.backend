@@ -11,6 +11,9 @@ import { issueAuthTokens } from "./token.service";
 
 const googleClient = new OAuth2Client();
 const appleJwks = createRemoteJWKSet(new URL("https://appleid.apple.com/auth/keys"));
+const firebaseJwks = createRemoteJWKSet(
+  new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"),
+);
 
 const parseAudienceList = (value?: string) =>
   value
@@ -41,6 +44,26 @@ export type VerifiedSocialProfile = {
   name?: string | null;
 };
 
+type FirebaseTokenPayload = {
+  sub?: string;
+  email?: string;
+  name?: string;
+  firebase?: {
+    sign_in_provider?: string;
+  };
+};
+
+const ensureFirebaseProjectId = () => {
+  if (!env.FIREBASE_PROJECT_ID) {
+    throw new ApiError(
+      StatusCodes.SERVICE_UNAVAILABLE,
+      "Firebase auth is not configured on the server",
+    );
+  }
+
+  return env.FIREBASE_PROJECT_ID;
+};
+
 export const verifyGoogleIdentity = async (idToken: string): Promise<VerifiedSocialProfile> => {
   const ticket = await googleClient.verifyIdToken({
     idToken,
@@ -57,6 +80,41 @@ export const verifyGoogleIdentity = async (idToken: string): Promise<VerifiedSoc
     subject: payload.sub,
     email: payload.email ?? null,
     name: payload.name ?? null,
+  };
+};
+
+export const verifyFirebaseIdentity = async (
+  firebaseIdToken: string,
+  provider: "apple" | "google",
+): Promise<VerifiedSocialProfile> => {
+  const projectId = ensureFirebaseProjectId();
+
+  const { payload } = await jwtVerify(firebaseIdToken, firebaseJwks, {
+    issuer: `https://securetoken.google.com/${projectId}`,
+    audience: projectId,
+  });
+
+  const firebasePayload = payload as FirebaseTokenPayload;
+
+  if (typeof firebasePayload.sub !== "string" || firebasePayload.sub.length === 0) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, "Firebase token subject is missing");
+  }
+
+  const actualProvider = firebasePayload.firebase?.sign_in_provider;
+  const expectedProvider = provider === "google" ? "google.com" : "apple.com";
+
+  if (actualProvider !== expectedProvider) {
+    throw new ApiError(
+      StatusCodes.UNAUTHORIZED,
+      `Firebase token provider mismatch: expected ${expectedProvider}, received ${actualProvider ?? "unknown"}`,
+    );
+  }
+
+  return {
+    provider,
+    subject: firebasePayload.sub,
+    email: typeof firebasePayload.email === "string" ? firebasePayload.email : null,
+    name: typeof firebasePayload.name === "string" ? firebasePayload.name : null,
   };
 };
 

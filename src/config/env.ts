@@ -14,6 +14,7 @@ const envSchema = z.object({
   CLIENT_ORIGIN: z.string().default("*"),
   GOOGLE_CLIENT_IDS: z.string().optional(),
   APPLE_CLIENT_IDS: z.string().optional(),
+  FIREBASE_PROJECT_ID: z.string().optional(),
   FCM_PROJECT_ID: z.string().optional(),
   FCM_CLIENT_EMAIL: z.string().optional(),
   FCM_PRIVATE_KEY: z.string().optional(),

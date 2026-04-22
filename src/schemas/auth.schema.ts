@@ -34,18 +34,28 @@ export const updateMeSchema = z.object({
 });
 
 export const appleAuthSchema = z.object({
-  body: z.object({
-    identityToken: z.string().min(1),
-    appInfo: z.record(z.string(), z.unknown()).optional(),
-    deviceInfo: z.record(z.string(), z.unknown()).optional(),
-    name: z.string().trim().min(1).max(80).optional(),
-  }),
+  body: z
+    .object({
+      identityToken: z.string().min(1).optional(),
+      firebaseIdToken: z.string().min(1).optional(),
+      appInfo: z.record(z.string(), z.unknown()).optional(),
+      deviceInfo: z.record(z.string(), z.unknown()).optional(),
+      name: z.string().trim().min(1).max(80).optional(),
+    })
+    .refine((data) => Boolean(data.identityToken || data.firebaseIdToken), {
+      message: "Either identityToken or firebaseIdToken is required",
+    }),
 });
 
 export const googleAuthSchema = z.object({
-  body: z.object({
-    idToken: z.string().min(1),
-    appInfo: z.record(z.string(), z.unknown()).optional(),
-    deviceInfo: z.record(z.string(), z.unknown()).optional(),
-  }),
+  body: z
+    .object({
+      idToken: z.string().min(1).optional(),
+      firebaseIdToken: z.string().min(1).optional(),
+      appInfo: z.record(z.string(), z.unknown()).optional(),
+      deviceInfo: z.record(z.string(), z.unknown()).optional(),
+    })
+    .refine((data) => Boolean(data.idToken || data.firebaseIdToken), {
+      message: "Either idToken or firebaseIdToken is required",
+    }),
 });
