@@ -310,11 +310,67 @@ export const updateReminderSchema = z.object({
 export const notificationPrefsSchema = z.object({
   body: z
     .object({
+      notificationsEnabled: z.boolean().optional(),
+      reminderNotificationsEnabled: z.boolean().optional(),
+      marketingNotificationsEnabled: z.boolean().optional(),
       soundsEnabled: z.boolean().optional(),
       notificationSoundId: z.string().trim().min(1).max(100).optional(),
       appBadgeEnabled: z.boolean().optional(),
+      quietHoursEnabled: z.boolean().optional(),
+      quietHoursStart: z.string().trim().regex(/^\d{2}:\d{2}$/).nullable().optional(),
+      quietHoursEnd: z.string().trim().regex(/^\d{2}:\d{2}$/).nullable().optional(),
     })
     .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+});
+
+export const registerDeviceSchema = z.object({
+  body: z.object({
+    token: z.string().trim().min(20).max(4096),
+    platform: z.enum(["android", "ios", "web"]),
+    appVersion: z.string().trim().max(50).optional(),
+    timezone: z.string().trim().max(100).optional(),
+    language: z.string().trim().max(50).optional(),
+    deviceName: z.string().trim().max(100).optional(),
+    notificationPermission: z.enum(["granted", "denied", "provisional", "not_determined"]).optional(),
+  }),
+});
+
+export const updateDeviceSchema = z.object({
+  params: z.object({
+    deviceId: z.string().min(1),
+  }),
+  body: z
+    .object({
+      token: z.string().trim().min(20).max(4096).optional(),
+      appVersion: z.string().trim().max(50).optional(),
+      timezone: z.string().trim().max(100).optional(),
+      language: z.string().trim().max(50).optional(),
+      deviceName: z.string().trim().max(100).optional(),
+      isActive: z.boolean().optional(),
+      notificationPermission: z.enum(["granted", "denied", "provisional", "not_determined"]).optional(),
+    })
+    .refine((data) => Object.keys(data).length > 0, { message: "At least one field is required" }),
+});
+
+export const deviceIdSchema = z.object({
+  params: z.object({
+    deviceId: z.string().min(1),
+  }),
+});
+
+export const unregisterDeviceSchema = z.object({
+  body: z.object({
+    token: z.string().trim().min(20).max(4096),
+  }),
+});
+
+export const testNotificationSchema = z.object({
+  body: z.object({
+    title: z.string().trim().min(1).max(120).default("Test notification"),
+    body: z.string().trim().min(1).max(240).default("Your push notification setup is working."),
+    deepLink: z.string().trim().max(500).optional(),
+    deviceId: z.string().min(1).optional(),
+  }),
 });
 
 export const importJsonSchema = z.object({

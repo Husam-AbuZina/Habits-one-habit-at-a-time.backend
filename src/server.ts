@@ -7,7 +7,7 @@ const start = async () => {
   await connectToDatabase();
 
   app.listen(env.PORT, () => {
-    console.log(`Habits backend listening on port ${env.PORT}`);
+    console.log(`✅ Habits backend listening on port ${env.PORT}`);
   });
 };
 

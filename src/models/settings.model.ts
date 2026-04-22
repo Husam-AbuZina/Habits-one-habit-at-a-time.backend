@@ -22,6 +22,18 @@ const settingsSchema = new Schema(
       type: String,
       default: DEFAULT_SETTINGS.language,
     },
+    notificationsEnabled: {
+      type: Boolean,
+      default: DEFAULT_SETTINGS.notificationsEnabled,
+    },
+    reminderNotificationsEnabled: {
+      type: Boolean,
+      default: DEFAULT_SETTINGS.reminderNotificationsEnabled,
+    },
+    marketingNotificationsEnabled: {
+      type: Boolean,
+      default: DEFAULT_SETTINGS.marketingNotificationsEnabled,
+    },
     soundsEnabled: {
       type: Boolean,
       default: DEFAULT_SETTINGS.soundsEnabled,
@@ -66,6 +78,18 @@ const settingsSchema = new Schema(
     includeMonthlyInBadge: {
       type: Boolean,
       default: DEFAULT_SETTINGS.includeMonthlyInBadge,
+    },
+    quietHoursEnabled: {
+      type: Boolean,
+      default: DEFAULT_SETTINGS.quietHoursEnabled,
+    },
+    quietHoursStart: {
+      type: String,
+      default: DEFAULT_SETTINGS.quietHoursStart,
+    },
+    quietHoursEnd: {
+      type: String,
+      default: DEFAULT_SETTINGS.quietHoursEnd,
     },
     widgetActionMode: {
       type: String,
