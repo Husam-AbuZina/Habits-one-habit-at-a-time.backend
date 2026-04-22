@@ -10,6 +10,12 @@ export const errorHandler = (
   _next: NextFunction,
 ) => {
   if (error instanceof ApiError) {
+    console.error("API error:", {
+      message: error.message,
+      statusCode: error.statusCode,
+      details: error.details ?? null,
+    });
+
     return res.status(error.statusCode).json({
       message: error.message,
       details: error.details ?? null,
@@ -29,6 +35,8 @@ export const errorHandler = (
       details: error,
     });
   }
+
+  console.error(error);
 
   return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
     message: "Internal server error",

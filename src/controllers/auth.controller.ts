@@ -195,23 +195,52 @@ export const socialAuth = async (
   res: Response,
   provider: "apple" | "google",
 ) => {
-  const profile =
-    typeof req.body.firebaseIdToken === "string"
-      ? await verifyFirebaseIdentity(req.body.firebaseIdToken, provider)
-      : provider === "apple"
-        ? await verifyAppleIdentity(req.body.identityToken, req.body.name)
-        : await verifyGoogleIdentity(req.body.idToken);
-
-  const { user, tokens } = await signInVerifiedSocialUser(profile, {
-    userAgent: req.get("user-agent"),
-    ipAddress: pickRequestIp(req.headers["x-forwarded-for"]) ?? req.ip ?? null,
-  });
-
-  return res.json({
+  const requestSummary = {
     provider,
-    user: serializeUser(user),
-    tokens,
-  });
+    bodyKeys: Object.keys(req.body ?? {}),
+    hasGoogleIdToken: typeof req.body.idToken === "string",
+    hasAppleIdentityToken: typeof req.body.identityToken === "string",
+    hasFirebaseIdToken: typeof req.body.firebaseIdToken === "string",
+    hasName: typeof req.body.name === "string" && req.body.name.length > 0,
+    hasAppInfo: typeof req.body.appInfo === "object" && req.body.appInfo !== null,
+    hasDeviceInfo: typeof req.body.deviceInfo === "object" && req.body.deviceInfo !== null,
+  };
+
+  console.info("[auth] Social auth request received", requestSummary);
+
+  try {
+    const profile =
+      typeof req.body.firebaseIdToken === "string"
+        ? await verifyFirebaseIdentity(req.body.firebaseIdToken, provider)
+        : provider === "apple"
+          ? await verifyAppleIdentity(req.body.identityToken, req.body.name)
+          : await verifyGoogleIdentity(req.body.idToken);
+
+    const { user, tokens } = await signInVerifiedSocialUser(profile, {
+      userAgent: req.get("user-agent"),
+      ipAddress: pickRequestIp(req.headers["x-forwarded-for"]) ?? req.ip ?? null,
+    });
+
+    console.info("[auth] Social auth succeeded", {
+      provider,
+      userId: user._id.toString(),
+      email: user.email,
+    });
+
+    return res.json({
+      provider,
+      user: serializeUser(user),
+      tokens,
+    });
+  } catch (error) {
+    console.error("[auth] Social auth failed", {
+      provider,
+      requestSummary,
+      message: error instanceof Error ? error.message : "Unknown auth error",
+    });
+
+    throw error;
+  }
 };
 
 export const appleAuth = async (req: Request, res: Response) => socialAuth(req, res, "apple");
