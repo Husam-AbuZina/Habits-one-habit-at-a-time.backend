@@ -1,9 +1,9 @@
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
-import morgan from "morgan";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/error-handler";
+import { requestLogger } from "./middleware/request-logger";
 import habitsRoutes from "./routes/habits.routes";
 import homeRoutes from "./routes/home.routes";
 import appRoutes from "./routes/app.routes";
@@ -26,7 +26,7 @@ app.use(
 );
 app.use(helmet());
 app.use(express.json());
-app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
+app.use(requestLogger);
 
 app.use("/", appRoutes);
 app.use("/", versionRoutes);

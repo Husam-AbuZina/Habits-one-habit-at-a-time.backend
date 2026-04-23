@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 import { ApiError } from "../utils/api-error";
+import { buildRequestDebugInfo, sanitizeForLog } from "../utils/logging";
 
 export const errorHandler = (
   error: Error,
@@ -13,7 +14,8 @@ export const errorHandler = (
     console.error("API error:", {
       message: error.message,
       statusCode: error.statusCode,
-      details: error.details ?? null,
+      details: sanitizeForLog(error.details ?? null),
+      request: buildRequestDebugInfo(_req),
     });
 
     return res.status(error.statusCode).json({
@@ -23,6 +25,12 @@ export const errorHandler = (
   }
 
   if (error instanceof mongoose.Error.ValidationError) {
+    console.error("Mongoose validation error:", {
+      message: error.message,
+      request: buildRequestDebugInfo(_req),
+      details: sanitizeForLog(error.errors),
+    });
+
     return res.status(StatusCodes.BAD_REQUEST).json({
       message: "Database validation failed",
       details: error.errors,
@@ -30,13 +38,23 @@ export const errorHandler = (
   }
 
   if ("code" in error && error.code === 11000) {
+    console.error("Duplicate key error:", {
+      request: buildRequestDebugInfo(_req),
+      details: sanitizeForLog(error),
+    });
+
     return res.status(StatusCodes.CONFLICT).json({
       message: "A unique field already exists",
       details: error,
     });
   }
 
-  console.error(error);
+  console.error("Unhandled server error:", {
+    request: buildRequestDebugInfo(_req),
+    name: error.name,
+    message: error.message,
+    stack: error.stack ?? null,
+  });
 
   return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
     message: "Internal server error",

@@ -2,8 +2,34 @@ import "./types/express";
 import { app } from "./app";
 import { env } from "./config/env";
 import { connectToDatabase } from "./db/connect";
+import { extractMongoTarget, sanitizeForLog } from "./utils/logging";
+
+process.on("unhandledRejection", (reason) => {
+  console.error("[process] Unhandled promise rejection", {
+    reason: sanitizeForLog(reason),
+  });
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("[process] Uncaught exception", {
+    name: error.name,
+    message: error.message,
+    stack: error.stack ?? null,
+  });
+});
 
 const start = async () => {
+  console.info("[startup] Starting Habits backend", {
+    nodeEnv: env.NODE_ENV,
+    port: env.PORT,
+    clientOrigin: env.CLIENT_ORIGIN,
+    hasGoogleClientIds: Boolean(env.GOOGLE_CLIENT_IDS),
+    hasAppleClientIds: Boolean(env.APPLE_CLIENT_IDS),
+    hasFirebaseProjectId: Boolean(env.FIREBASE_PROJECT_ID),
+    hasFcmProjectId: Boolean(env.FCM_PROJECT_ID),
+    mongoTarget: extractMongoTarget(env.MONGODB_URI),
+  });
+
   await connectToDatabase();
 
   app.listen(env.PORT, () => {
