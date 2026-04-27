@@ -206,11 +206,16 @@ export const socialAuth = async (
     hasDeviceInfo: typeof req.body.deviceInfo === "object" && req.body.deviceInfo !== null,
   };
 
-  console.info("[auth] Social auth request received", requestSummary);
+  const usesFirebaseIdToken = typeof req.body.firebaseIdToken === "string";
+
+  console.info("[auth] Social auth request received", {
+    ...requestSummary,
+    tokenPath: usesFirebaseIdToken ? "firebase" : provider === "apple" ? "apple" : "google",
+  });
 
   try {
     const profile =
-      typeof req.body.firebaseIdToken === "string"
+      usesFirebaseIdToken
         ? await verifyFirebaseIdentity(req.body.firebaseIdToken, provider)
         : provider === "apple"
           ? await verifyAppleIdentity(req.body.identityToken, req.body.name)
