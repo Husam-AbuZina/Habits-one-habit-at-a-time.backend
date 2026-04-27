@@ -21,6 +21,7 @@ process.on("uncaughtException", (error) => {
 const start = async () => {
   console.info("[startup] Starting Habits backend", {
     nodeEnv: env.NODE_ENV,
+    nodeVersion: process.version,
     port: env.PORT,
     clientOrigin: env.CLIENT_ORIGIN,
     hasGoogleClientIds: Boolean(env.GOOGLE_CLIENT_IDS),
@@ -37,4 +38,11 @@ const start = async () => {
   });
 };
 
-void start();
+void start().catch((error) => {
+  console.error("[startup] Failed to start Habits backend", {
+    name: error instanceof Error ? error.name : 'UnknownError',
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack ?? null : null,
+  });
+  process.exit(1);
+});
