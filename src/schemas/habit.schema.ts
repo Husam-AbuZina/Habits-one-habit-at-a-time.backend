@@ -7,6 +7,7 @@ const remindMeSchema = z
   .optional();
 
 const habitBodyBase = {
+  id: z.string().trim().min(1).max(120).optional(),
   title: z.string().trim().min(1).max(140),
   emoji: z.string().trim().min(1).max(16).nullable().optional(),
   goalCount: z.number().nonnegative(),
@@ -37,6 +38,7 @@ export const updateHabitSchema = z.object({
   body: z
     .object({
       title: habitBodyBase.title.optional(),
+      id: habitBodyBase.id,
       emoji: habitBodyBase.emoji,
       goalCount: habitBodyBase.goalCount.optional(),
       previousCompletedCount: habitBodyBase.previousCompletedCount,

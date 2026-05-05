@@ -30,6 +30,7 @@ export const createHabit = async (req: Request, res: Response) => {
 
   const habit = await HabitModel.create({
     userId: req.auth!.sub,
+    clientId: req.body.id ?? null,
     title: req.body.title,
     emoji: req.body.emoji ?? null,
     goalCount: req.body.goalCount,
@@ -109,6 +110,7 @@ export const updateHabit = async (req: Request, res: Response) => {
   const habit = await getOwnedHabit(req.auth!.sub, habitId);
 
   const updatableFields = [
+    "clientId",
     "title",
     "emoji",
     "goalCount",
@@ -131,7 +133,11 @@ export const updateHabit = async (req: Request, res: Response) => {
 
   for (const field of updatableFields) {
     if (field in req.body) {
-      habit.set(field, req.body[field]);
+      if (field === "clientId") {
+        habit.set(field, req.body.id ?? req.body.clientId ?? null);
+      } else {
+        habit.set(field, req.body[field]);
+      }
     }
   }
 

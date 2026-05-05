@@ -4,7 +4,7 @@ import { SettingsModel } from "../models/settings.model";
 import { ensureUserSettings } from "../services/settings.service";
 import { getHabitCounters } from "../services/habit.service";
 
-const serializeSettings = (settings: any) => ({
+export const serializeSettings = (settings: any) => ({
   appearanceMode: settings.appearanceMode,
   appIconMode: settings.appIconMode,
   language: settings.language,

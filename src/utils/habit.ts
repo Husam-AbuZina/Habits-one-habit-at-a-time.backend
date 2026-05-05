@@ -2,6 +2,7 @@ import { toDateOnlyString, toIsoDateOrNull } from "./date";
 
 type HabitLike = {
   _id: { toString(): string };
+  clientId?: string | null;
   title: string;
   emoji?: string | null;
   goalCount: number;
@@ -79,6 +80,7 @@ export const serializeHabit = (habit: HabitLike, selectedDate?: string) => {
 
   return {
     id: habit._id.toString(),
+    clientId: habit.clientId ?? null,
     title: habit.title,
     emoji: habit.emoji ?? null,
     goalCount: habit.goalCount,

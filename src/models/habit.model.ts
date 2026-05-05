@@ -52,6 +52,11 @@ const habitSchema = new Schema(
       required: true,
       index: true,
     },
+    clientId: {
+      type: String,
+      default: null,
+      index: true,
+    },
     title: {
       type: String,
       required: true,
@@ -204,5 +209,6 @@ const habitSchema = new Schema(
 );
 
 habitSchema.index({ userId: 1, isArchived: 1, order: 1 });
+habitSchema.index({ userId: 1, clientId: 1 });
 
 export const HabitModel = model("Habit", habitSchema);
