@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
+import { env } from "../config/env";
 import { ApiError } from "../utils/api-error";
 import { buildRequestDebugInfo, sanitizeForLog } from "../utils/logging";
 
@@ -57,6 +58,12 @@ export const errorHandler = (
   });
 
   return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-    message: "Internal server error",
+    message: env.NODE_ENV === "production" ? "Internal server error" : error.message,
+    details:
+      env.NODE_ENV === "production"
+        ? undefined
+        : {
+            name: error.name,
+          },
   });
 };

@@ -15,6 +15,29 @@ import { comparePassword, hashPassword } from "../utils/password";
 import { verifyToken } from "../utils/jwt";
 import { pickRequestIp } from "../utils/http";
 
+const withAuthTimeout = async <T>(
+  operation: Promise<T>,
+  timeoutMs: number,
+  message: string,
+  details?: Record<string, unknown>,
+): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new ApiError(StatusCodes.GATEWAY_TIMEOUT, message, details));
+    }, timeoutMs);
+  });
+
+  try {
+    return await Promise.race([operation, timeout]);
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+};
+
 const serializeUser = (user: {
   _id: { toString(): string };
   email: string;
@@ -214,17 +237,54 @@ export const socialAuth = async (
   });
 
   try {
-    const profile =
-      usesFirebaseIdToken
-        ? await verifyFirebaseIdentity(req.body.firebaseIdToken, provider)
-        : provider === "apple"
-          ? await verifyAppleIdentity(req.body.identityToken, req.body.name)
-          : await verifyGoogleIdentity(req.body.idToken);
+    let profile;
 
-    const { user, tokens } = await signInVerifiedSocialUser(profile, {
-      userAgent: req.get("user-agent"),
-      ipAddress: pickRequestIp(req.headers["x-forwarded-for"]) ?? req.ip ?? null,
-    });
+    if (provider === "google" && usesFirebaseIdToken) {
+      try {
+        profile = await withAuthTimeout(
+          verifyFirebaseIdentity(req.body.firebaseIdToken, provider),
+          8_000,
+          provider + " firebase token verification timed out",
+          { provider, tokenPath: "firebase" },
+        );
+      } catch (error) {
+        if (typeof req.body.idToken === "string") {
+          console.warn("[auth] Firebase Google verification failed, falling back to raw Google idToken", {
+            message: error instanceof Error ? error.message : "Unknown auth error",
+          });
+
+          profile = await withAuthTimeout(
+            verifyGoogleIdentity(req.body.idToken),
+            8_000,
+            provider + " raw google token verification timed out",
+            { provider, tokenPath: "google" },
+          );
+        } else {
+          throw error;
+        }
+      }
+    } else {
+      profile = await withAuthTimeout(
+        usesFirebaseIdToken
+          ? verifyFirebaseIdentity(req.body.firebaseIdToken, provider)
+          : provider === "apple"
+            ? verifyAppleIdentity(req.body.identityToken, req.body.name)
+            : verifyGoogleIdentity(req.body.idToken),
+        8_000,
+        provider + " token verification timed out",
+        { provider, tokenPath: usesFirebaseIdToken ? "firebase" : provider },
+      );
+    }
+
+    const { user, tokens } = await withAuthTimeout(
+      signInVerifiedSocialUser(profile, {
+        userAgent: req.get("user-agent"),
+        ipAddress: pickRequestIp(req.headers["x-forwarded-for"]) ?? req.ip ?? null,
+      }),
+      8_000,
+      provider + " backend session creation timed out",
+      { provider, tokenPath: usesFirebaseIdToken ? "firebase" : provider },
+    );
 
     console.info("[auth] Social auth succeeded", {
       provider,
@@ -241,7 +301,9 @@ export const socialAuth = async (
     console.error("[auth] Social auth failed", {
       provider,
       requestSummary,
+      name: error instanceof Error ? error.name : null,
       message: error instanceof Error ? error.message : "Unknown auth error",
+      stack: error instanceof Error ? error.stack ?? null : null,
     });
 
     throw error;

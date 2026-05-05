@@ -10,9 +10,14 @@ import { ensureUserSettings } from "./settings.service";
 import { issueAuthTokens } from "./token.service";
 
 const googleClient = new OAuth2Client();
-const appleJwks = createRemoteJWKSet(new URL("https://appleid.apple.com/auth/keys"));
+const appleJwks = createRemoteJWKSet(new URL("https://appleid.apple.com/auth/keys"), {
+  timeoutDuration: 5_000,
+});
 const firebaseJwks = createRemoteJWKSet(
   new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"),
+  {
+    timeoutDuration: 5_000,
+  },
 );
 
 const parseAudienceList = (value?: string) =>
@@ -314,9 +319,18 @@ export const signInVerifiedSocialUser = async (
   });
 
   const providerField = providerFieldMap[profile.provider];
+  console.info("[auth:social] Looking up linked social user", {
+    provider: profile.provider,
+    providerField,
+    subject: redactSubject(profile.subject),
+  });
   let user = await UserModel.findOne({ [providerField]: profile.subject });
 
   if (!user && profile.email) {
+    console.info("[auth:social] Looking up existing user by email", {
+      provider: profile.provider,
+      email: profile.email,
+    });
     user = await UserModel.findOne({ email: profile.email.toLowerCase() });
     if (user) {
       console.info("[auth:social] Matched existing user by email", {
@@ -328,6 +342,10 @@ export const signInVerifiedSocialUser = async (
       if (!user.name && profile.name) {
         user.name = profile.name;
       }
+      console.info("[auth:social] Linking social subject to existing user", {
+        provider: profile.provider,
+        userId: user._id.toString(),
+      });
       await user.save();
     }
   }
@@ -340,6 +358,10 @@ export const signInVerifiedSocialUser = async (
       );
     }
 
+    console.info("[auth:social] Creating new social user", {
+      provider: profile.provider,
+      email: profile.email,
+    });
     user = await UserModel.create({
       email: profile.email.toLowerCase(),
       passwordHash: await hashPassword(randomUUID()),
@@ -360,8 +382,16 @@ export const signInVerifiedSocialUser = async (
     });
   }
 
+  console.info("[auth:social] Ensuring user settings", {
+    provider: profile.provider,
+    userId: user._id.toString(),
+  });
   await ensureUserSettings(user._id.toString());
 
+  console.info("[auth:social] Issuing backend tokens", {
+    provider: profile.provider,
+    userId: user._id.toString(),
+  });
   const tokens = await issueAuthTokens(
     { _id: user._id.toString(), email: user.email },
     sessionMeta,
