@@ -307,6 +307,9 @@ const providerFieldMap = {
   google: "googleSubject",
 } as const;
 
+const buildStableAppleEmail = (subject: string) =>
+  `apple-${subject.toLowerCase()}@privaterelay.habitsoneatatime.local`;
+
 export const signInVerifiedSocialUser = async (
   profile: VerifiedSocialProfile,
   sessionMeta?: { userAgent?: string | null; ipAddress?: string | null },
@@ -351,7 +354,18 @@ export const signInVerifiedSocialUser = async (
   }
 
   if (!user) {
-    if (!profile.email) {
+    if (!profile.email && profile.provider !== "apple") {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        `This ${profile.provider} account is not linked yet and the provider did not return an email`,
+      );
+    }
+
+    const email =
+      profile.email?.toLowerCase() ??
+      (profile.provider === "apple" ? buildStableAppleEmail(profile.subject) : null);
+
+    if (!email) {
       throw new ApiError(
         StatusCodes.UNAUTHORIZED,
         `This ${profile.provider} account is not linked yet and the provider did not return an email`,
@@ -360,10 +374,11 @@ export const signInVerifiedSocialUser = async (
 
     console.info("[auth:social] Creating new social user", {
       provider: profile.provider,
-      email: profile.email,
+      email,
+      usedStableAppleEmail: !profile.email && profile.provider === "apple",
     });
     user = await UserModel.create({
-      email: profile.email.toLowerCase(),
+      email,
       passwordHash: await hashPassword(randomUUID()),
       name: profile.name ?? null,
       appleSubject: profile.provider === "apple" ? profile.subject : null,
